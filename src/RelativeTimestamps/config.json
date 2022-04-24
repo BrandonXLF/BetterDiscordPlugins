@@ -1,15 +1,7 @@
 {
-	"main": "index.js",
 	"info": {
-		"name": "RelativeTimestamps",
-		"authors": [{
-			"name": "BrandonXLF"
-		}],
 		"version": "1.0.0",
-		"description": "Add relative timestamps to messages.",
-		"github": "https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/RelativeTimestamps",
-		"github_raw": "https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/RelativeTimestamps.plugin.js",
-		"authorLink": "https://github.com/BrandonXLF/"
+		"description": "Add relative timestamps to messages."
 	},
 	"defaultConfig": [{
 		"type": "switch",
