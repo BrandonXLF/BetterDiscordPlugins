@@ -1,0 +1,15 @@
+{
+	"main": "index.js",
+	"info": {
+		"name": "KeepCurrentChannel",
+		"authors": [{
+			"name": "BrandonXLF",
+			"github_username": "BrandonXLF"
+		}],
+		"version": "1.0.0",
+		"description": "Attempt to navigate the channel you were in before switching accounts.",
+		"github": "https://github.com/BrandonXLF/BetterDiscordPlugins/blob/master/KeepCurrentChannel",
+		"github_raw": "https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/master/release/KeepCurrentChannel.plugin.js",
+		"authorLink": "https://github.com/BrandonXLF/"
+	}
+}
