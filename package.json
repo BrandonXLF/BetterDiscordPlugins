@@ -1,0 +1,14 @@
+{
+	"private": true,
+	"scripts": {
+		"build": "npm run transpile && npm run buildrelease",
+		"transpile": "babel src --out-dir transpiled --copy-files",
+		"buildrelease": "node BDPluginLibrary/scripts/build.js",
+		"postinstall": "node scripts/setup.js"
+	},
+	"devDependencies": {
+		"@babel/cli": "^7.17.6",
+		"@babel/core": "^7.17.9",
+		"@babel/preset-react": "^7.16.7"
+	}
+}
