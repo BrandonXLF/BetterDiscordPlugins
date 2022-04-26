@@ -186,7 +186,6 @@ module.exports = (() => {
   class NotificationHistoryIconElement extends React.Component {
     constructor(props) {
       super(props);
-      this.ref = React.createRef();
       this.state = {
         open: false
       };
@@ -228,9 +227,7 @@ module.exports = (() => {
     }
 
     render() {
-      return /*#__PURE__*/React.createElement("div", {
-        ref: this.ref
-      }, /*#__PURE__*/React.createElement(Popout, {
+      return /*#__PURE__*/React.createElement(Popout, {
         align: "right",
         position: "bottom",
         animation: "1",
@@ -252,7 +249,7 @@ module.exports = (() => {
           tooltip: popoutState.isShown ? null : "Notification History",
           selected: popoutState.isShown
         })
-      }));
+      });
     }
 
   }

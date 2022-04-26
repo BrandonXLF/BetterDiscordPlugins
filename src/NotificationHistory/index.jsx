@@ -99,7 +99,6 @@ module.exports = (Plugin, Library) => {
 	class NotificationHistoryIconElement extends React.Component {
 		constructor(props) {
 			super(props);
-			this.ref = React.createRef();
 			this.state = {open: false};
 		}
 		
@@ -118,27 +117,25 @@ module.exports = (Plugin, Library) => {
 		}
 		
 		render() {
-			return <div ref={this.ref}>
-				<Popout
-					align="right"
-					position="bottom"
-					animation="1"
-					shouldShow={this.state.open}
-					onRequestClose={() => this.setState({open: false})}
-					ignoreModalClicks={true}
-					autoInvert={false}
-					renderPopout={popoutProps => {
-						popoutProps.notificationStore = this.props.notificationStore;
-						return <NotificationHistoryDialogElement {...popoutProps} />;
-					}}
-					children={(_, popoutState) => <IconElement
-						icon={this.createIcon.bind(this)}
-						onClick={() => this.setState(state => ({open: !state.open}))}
-						tooltip={popoutState.isShown ? null : "Notification History"}
-						selected={popoutState.isShown}
-					/>}
-				/>
-			</div>
+			return <Popout
+				align="right"
+				position="bottom"
+				animation="1"
+				shouldShow={this.state.open}
+				onRequestClose={() => this.setState({open: false})}
+				ignoreModalClicks={true}
+				autoInvert={false}
+				renderPopout={popoutProps => {
+					popoutProps.notificationStore = this.props.notificationStore;
+					return <NotificationHistoryDialogElement {...popoutProps} />;
+				}}
+				children={(_, popoutState) => <IconElement
+					icon={this.createIcon.bind(this)}
+					onClick={() => this.setState(state => ({open: !state.open}))}
+					tooltip={popoutState.isShown ? null : "Notification History"}
+					selected={popoutState.isShown}
+				/>}
+			/>;
 		}
 	}
 
