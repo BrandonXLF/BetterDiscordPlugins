@@ -134,7 +134,8 @@ module.exports = (Plugin, Library) => {
 					children={(_, popoutState) => <IconElement
 						icon={this.createIcon.bind(this)}
 						onClick={() => this.setState(state => ({open: !state.open}))}
-						tooltip={popoutState.isShown ? undefined : "Notification History"}
+						tooltip={popoutState.isShown ? null : "Notification History"}
+						selected={popoutState.isShown}
 					/>}
 				/>
 			</div>
