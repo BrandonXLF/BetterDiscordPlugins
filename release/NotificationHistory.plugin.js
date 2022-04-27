@@ -1,6 +1,6 @@
 /**
  * @name NotificationHistory
- * @version 1.0.1
+ * @version 1.1.0
  * @author BrandonXLF
  * @description View a list of all the notifications you've received since Discord was opened.
  * @website https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory
@@ -8,7 +8,7 @@
  * @authorLink https://github.com/BrandonXLF/
  */
 module.exports = (() => {
-	const config = {"info":{"version":"1.0.1","description":"View a list of all the notifications you've received since Discord was opened.","name":"NotificationHistory","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/NotificationHistory.plugin.js","authorLink":"https://github.com/BrandonXLF/","authors":[{"name":"BrandonXLF"}]},"main":"index.js"};
+	const config = {"info":{"version":"1.1.0","description":"View a list of all the notifications you've received since Discord was opened.","name":"NotificationHistory","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/NotificationHistory.plugin.js","authorLink":"https://github.com/BrandonXLF/","authors":[{"name":"BrandonXLF"}]},"main":"index.js"};
 
 	return !global.ZeresPluginLibrary ? class {
 		constructor() {
@@ -66,23 +66,26 @@ module.exports = (() => {
     DOMTools
   } = Library;
   const {
-    React
+    React,
+    MessageStore,
+    NavigationUtils
   } = DiscordModules;
-  const OSNotification = WebpackModules.getByProps('showNotification', 'hasPermission');
-  const moment = WebpackModules.getByProps('duration', 'now');
+  const RPC = WebpackModules.getByProps('handleNotificationCreate');
   const HeaderBar = WebpackModules.find(m => m.default?.displayName == 'HeaderBar');
   const {
     ScrollerThin
   } = WebpackModules.getByProps('ScrollerThin');
-  const MessageTimestamp = WebpackModules.findByDisplayName('MessageTimestamp');
   const IconElement = WebpackModules.getByProps('Icon').Icon;
   const Popout = WebpackModules.findByDisplayName('Popout');
+  const RecentsChannelHeader = WebpackModules.getByDisplayName('RecentsChannelHeader');
+  const JumpToMessageButton = WebpackModules.getByDisplayName('JumpToMessageButton');
+  const ChannelMessage = WebpackModules.find(m => m?.default?.type.toString().includes('subscribeToComponentDispatch')).default.type;
+  const ChannelStore = WebpackModules.getByProps('getChannel', 'getDMFromUserId');
   const sizeClasses = WebpackModules.getByProps('size16');
   const titleClasses = WebpackModules.getByProps('base', 'uppercase');
-  const messageContentClasses = WebpackModules.getByProps('markup', 'roleMention');
   const iconClasses = WebpackModules.getByProps('container', 'children', 'toolbar', 'iconWrapper');
   const inboxClasses = WebpackModules.getByProps('messagesPopout', 'messagesPopoutWrap', 'emptyPlaceholder');
-  const messageClasses = WebpackModules.getByProps('cozy', 'timestampTooltip', 'commandIcon');
+  const recentMentionsClasses = WebpackModules.getByProps('message', 'recentMentionsPopout');
 
   class NotificationStore extends EventTarget {
     #notifications = [];
@@ -112,27 +115,27 @@ module.exports = (() => {
     }
 
     render() {
-      let date = moment(this.props.notification.timestamp);
+      let msg = MessageStore.getMessage(this.props.notification.message.channel_id, this.props.notification.message.id);
+      let channel = ChannelStore.getChannel(this.props.notification.channelId);
+
+      let goToMessage = () => NavigationUtils.transitionToGuild(channel.getGuildId(), channel.id, msg.id);
+
+      if (!msg || !channel) return null;
       return /*#__PURE__*/React.createElement("div", {
-        className: `${messageContentClasses.markup} notification-history-record`,
-        onClick: this.onClick.bind(this)
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "notification-history-icon"
-      }, /*#__PURE__*/React.createElement("img", {
-        src: this.props.notification.icon
-      })), /*#__PURE__*/React.createElement("div", {
-        className: messageClasses.cozy
-      }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
-        style: {
-          fontWeight: 'bold'
-        }
-      }, this.props.notification.title), /*#__PURE__*/React.createElement(MessageTimestamp, {
-        timestamp: date
-      })), /*#__PURE__*/React.createElement("div", {
-        style: {
-          lineBreak: 'anywhere'
-        }
-      }, this.props.notification.body)));
+        className: recentMentionsClasses.container
+      }, /*#__PURE__*/React.createElement(RecentsChannelHeader, {
+        channel: channel,
+        gotoChannel: goToMessage
+      }), /*#__PURE__*/React.createElement("div", {
+        className: recentMentionsClasses.messageContainer
+      }, /*#__PURE__*/React.createElement(JumpToMessageButton, {
+        className: recentMentionsClasses.jumpButton,
+        onJump: goToMessage
+      }), /*#__PURE__*/React.createElement(ChannelMessage, {
+        message: msg,
+        channel: channel,
+        className: recentMentionsClasses.message
+      })));
     }
 
   }
@@ -170,7 +173,7 @@ module.exports = (() => {
         className: "notification-history-list"
       }, this.props.notificationStore.length ? this.props.notificationStore.getAll().map(notification => {
         return /*#__PURE__*/React.createElement(NotificationElement, {
-          key: notification.tag,
+          key: notification.message.id,
           notification: notification,
           closeModal: this.props.onClose
         });
@@ -258,11 +261,12 @@ module.exports = (() => {
     notificationStore = new NotificationStore();
 
     onStart() {
-      Patcher.after(OSNotification, 'showNotification', (_, __, notification) => {
+      Patcher.after(RPC, 'handleNotificationCreate', (_, [notification]) => {
         if (!notification) return;
         this.notificationStore.add(notification);
       });
       Patcher.before(HeaderBar, 'default', (_, [props]) => {
+        if (!props) return;
         let toolbarChildren = props.toolbar.props.children;
         let btnIndex = toolbarChildren.findIndex(x => x?.type?.displayName == 'RecentsButton');
         toolbarChildren.splice(btnIndex, 0, /*#__PURE__*/React.createElement(NotificationHistoryIconElement, {

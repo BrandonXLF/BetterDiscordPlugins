@@ -1,21 +1,20 @@
 module.exports = (Plugin, Library) => {
 	const { Patcher, DiscordModules, WebpackModules, DOMTools } = Library;
-	const { React } = DiscordModules;
-	const OSNotification = WebpackModules.getByProps('showNotification', 'hasPermission');
-	const moment = WebpackModules.getByProps('duration', 'now');
-
+	const { React, MessageStore, NavigationUtils } = DiscordModules;
+	const RPC = WebpackModules.getByProps('handleNotificationCreate');
 	const HeaderBar = WebpackModules.find(m => m.default?.displayName == 'HeaderBar');
 	const { ScrollerThin } = WebpackModules.getByProps('ScrollerThin');
-	const MessageTimestamp = WebpackModules.findByDisplayName('MessageTimestamp');
 	const IconElement = WebpackModules.getByProps('Icon').Icon;
 	const Popout = WebpackModules.findByDisplayName('Popout');
-
+	const RecentsChannelHeader = WebpackModules.getByDisplayName('RecentsChannelHeader');
+	const JumpToMessageButton = WebpackModules.getByDisplayName('JumpToMessageButton');
+	const ChannelMessage = WebpackModules.find(m => m?.default?.type.toString().includes('subscribeToComponentDispatch')).default.type;
+	const ChannelStore = WebpackModules.getByProps('getChannel', 'getDMFromUserId');
 	const sizeClasses = WebpackModules.getByProps('size16');
 	const titleClasses = WebpackModules.getByProps('base', 'uppercase');
-	const messageContentClasses = WebpackModules.getByProps('markup', 'roleMention');
 	const iconClasses = WebpackModules.getByProps('container', 'children', 'toolbar', 'iconWrapper');
 	const inboxClasses = WebpackModules.getByProps('messagesPopout', 'messagesPopoutWrap', 'emptyPlaceholder');
-	const messageClasses = WebpackModules.getByProps('cozy', 'timestampTooltip', 'commandIcon');
+	const recentMentionsClasses = WebpackModules.getByProps('message', 'recentMentionsPopout');
 	
 	class NotificationStore extends EventTarget {
 		#notifications = [];
@@ -44,18 +43,31 @@ module.exports = (Plugin, Library) => {
 		}
 		
 		render() {
-			let date = moment(this.props.notification.timestamp);
+			let msg = MessageStore.getMessage(
+				this.props.notification.message.channel_id,
+				this.props.notification.message.id
+			);
 			
-			return <div className={`${messageContentClasses.markup} notification-history-record`} onClick={this.onClick.bind(this)}>
-				<div className="notification-history-icon">
-					<img src={this.props.notification.icon} />
-				</div>
-				<div className={messageClasses.cozy}>
-					<div>
-						<span style={{fontWeight: 'bold'}}>{this.props.notification.title}</span>
-						<MessageTimestamp timestamp={date} />
-					</div>
-					<div style={{lineBreak: 'anywhere'}}>{this.props.notification.body}</div>
+			let channel = ChannelStore.getChannel(this.props.notification.channelId);
+			let goToMessage = () => NavigationUtils.transitionToGuild(channel.getGuildId(), channel.id, msg.id);
+			
+			if (!msg || !channel) return null;
+			
+			return <div className={recentMentionsClasses.container}>
+				<RecentsChannelHeader
+					channel={channel}
+					gotoChannel={goToMessage}
+				/>
+				<div className={recentMentionsClasses.messageContainer}>
+					<JumpToMessageButton
+						className={recentMentionsClasses.jumpButton}
+						onJump={goToMessage}
+					/>
+					<ChannelMessage
+						message={msg}
+						channel={channel}
+						className={recentMentionsClasses.message}
+					/>
 				</div>
 			</div>;
 		}
@@ -84,7 +96,7 @@ module.exports = (Plugin, Library) => {
 					<ScrollerThin className="notification-history-list">
 						{this.props.notificationStore.length
 							? this.props.notificationStore.getAll().map(notification => {
-								return <NotificationElement key={notification.tag} notification={notification} closeModal={this.props.onClose} />;
+								return <NotificationElement key={notification.message.id} notification={notification} closeModal={this.props.onClose} />;
 							})
 							: <div className={inboxClasses.emptyPlaceholder}>
 								<div className={inboxClasses.body}>Any notifications you receive will be recorded here.</div>
@@ -143,13 +155,15 @@ module.exports = (Plugin, Library) => {
 		notificationStore = new NotificationStore();
 
 		onStart() {
-			Patcher.after(OSNotification, 'showNotification', (_, __, notification) => {
+			Patcher.after(RPC, 'handleNotificationCreate', (_, [notification]) => {
 				if (!notification) return;
 				
 				this.notificationStore.add(notification);
 			});
 
 			Patcher.before(HeaderBar, 'default', (_, [props]) => {
+				if (!props) return;
+				
 				let toolbarChildren = props.toolbar.props.children;
 				let btnIndex = toolbarChildren.findIndex(x => x?.type?.displayName == 'RecentsButton');
 				
