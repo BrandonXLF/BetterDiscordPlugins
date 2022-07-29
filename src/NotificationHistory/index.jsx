@@ -20,6 +20,8 @@ module.exports = (Plugin, Library) => {
 		#notifications = [];
 		
 		add(notification) {
+			if (this.#notifications.includes(notification)) return;
+			
 			this.#notifications.unshift(notification);
 			this.dispatchEvent(new CustomEvent('notification'));
 		}
