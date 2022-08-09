@@ -146,7 +146,7 @@ module.exports = (() => {
 
   }
 
-  return class NotificationFilter extends Plugin {
+  return class RelativeTimestamps extends Plugin {
     // Discord sometimes sets the timestamp in the future
     earliestKnownExistences = {};
     shouldHideSeconds = () => this.settings.hideSeconds;
