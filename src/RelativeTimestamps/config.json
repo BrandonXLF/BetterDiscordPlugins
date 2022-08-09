@@ -3,10 +3,25 @@
 		"version": "1.0.0",
 		"description": "Add relative timestamps to messages."
 	},
-	"defaultConfig": [{
-		"type": "switch",
-		"id": "showInTimestamp",
-		"name": "Show relative timestamp in the message timestamp in addition to the tooltip.",
-		"value": true
-	}]
+	"changelog": [
+		{
+			"title": "New Setting",
+			"type": "improved",
+			"items": ["Added a setting to remove seconds from message timestamps"]
+		}
+	],
+	"defaultConfig": [
+		{
+			"type": "switch",
+			"id": "showInTimestamp",
+			"name": "Show relative timestamp in the message timestamp in addition to the tooltip.",
+			"value": true
+		},
+		{
+			"type": "switch",
+			"id": "hideSeconds",
+			"name": "Do not display seconds for the relative timestamp in the message timestamp.",
+			"value": false
+		}
+	]
 }

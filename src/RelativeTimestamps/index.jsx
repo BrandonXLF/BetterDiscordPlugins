@@ -31,12 +31,14 @@ module.exports = (Plugin, Library) => {
 			display: 's'
 		}
 	];
+	const unitsWithoutSeconds = units.slice(0, -1);
 	
-	function formatAgo(start, end) {
+	function formatAgo(start, end, hideSeconds) {
 		let duration = moment.duration(end - start),
-			parts = [];
-	
-		units.forEach(unit => {
+			parts = [],
+			useUnits = hideSeconds ? unitsWithoutSeconds : units;
+
+		useUnits.forEach(unit => {
 			let time = duration[unit.func]();
 			
 			if (time) parts.push(time + unit.display);
@@ -80,13 +82,14 @@ module.exports = (Plugin, Library) => {
 		}
 
 		render() {
-			return <span ref={this.ref}> - {formatAgo(this.props.start, this.state.end)}</span>;
+			return <span ref={this.ref}> - {formatAgo(this.props.start, this.state.end, this.props.shouldHideSeconds?.())}</span>;
 		}
 	}
 
 	return class NotificationFilter extends Plugin {
 		// Discord sometimes sets the timestamp in the future
 		earliestKnownExistences = {};
+		shouldHideSeconds = () => this.settings.hideSeconds;
 		
 		getEarliestKnownExistence(id) {
 			if (id && !this.earliestKnownExistences[id]) this.earliestKnownExistences[id] = Date.now();
@@ -94,7 +97,7 @@ module.exports = (Plugin, Library) => {
 			return this.earliestKnownExistences[id] || Date.now();
 		}
 		
-		addToTimestamp(props, timestamp) {
+		addToTimestamp(messageSent, timestamp) {
 			let renderChildren = timestamp.props.children.props.children;
 			
 			timestamp.props.children.props.children = (...childrenArgs) => {
@@ -102,7 +105,7 @@ module.exports = (Plugin, Library) => {
 				
 				if (!Array.isArray(children.props.children)) children.props.children = [children.props.children];
 
-				children.props.children.push(<AgoElement start={Math.min(props.timestamp.valueOf(), this.getEarliestKnownExistence(props.id))} />);
+				children.props.children.push(<AgoElement start={messageSent} shouldHideSeconds={this.shouldHideSeconds} />);
 
 				return children;
 			};
@@ -112,11 +115,13 @@ module.exports = (Plugin, Library) => {
 			Patcher.after(MessageTimestamp, 'default', (_, [props], val) => {
 				let isEditTimestamp = props.children?.props.className === messageClasses.edited;
 
-				if (!props.compact && !isEditTimestamp && this.settings.showInTimestamp) this.addToTimestamp(props, val);
+				let messageSent = Math.min(props.timestamp.valueOf(), this.getEarliestKnownExistence(props.id));
+				
+				if (!props.compact && !isEditTimestamp && this.settings.showInTimestamp) this.addToTimestamp(messageSent, val);
 				
 				val.props.children.props.text = <div>
 					{val.props.children.props.text}
-					<AgoElement start={Math.min(props.timestamp.valueOf(), this.getEarliestKnownExistence(props.id))} />
+					<AgoElement start={messageSent} />
 				</div>;
 			});
 			

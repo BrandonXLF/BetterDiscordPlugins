@@ -8,7 +8,7 @@
  * @authorLink https://github.com/BrandonXLF/
  */
 module.exports = (() => {
-	const config = {"info":{"version":"1.0.0","description":"Add relative timestamps to messages.","name":"RelativeTimestamps","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/RelativeTimestamps","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/RelativeTimestamps.plugin.js","authorLink":"https://github.com/BrandonXLF/","authors":[{"name":"BrandonXLF"}]},"defaultConfig":[{"type":"switch","id":"showInTimestamp","name":"Show relative timestamp in the message timestamp in addition to the tooltip.","value":true}],"main":"index.js"};
+	const config = {"info":{"version":"1.0.0","description":"Add relative timestamps to messages.","name":"RelativeTimestamps","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/RelativeTimestamps","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/RelativeTimestamps.plugin.js","authorLink":"https://github.com/BrandonXLF/","authors":[{"name":"BrandonXLF"}]},"changelog":[{"title":"New Setting","type":"improved","items":["Added a setting to remove seconds from message timestamps"]}],"defaultConfig":[{"type":"switch","id":"showInTimestamp","name":"Show relative timestamp in the message timestamp in addition to the tooltip.","value":true},{"type":"switch","id":"hideSeconds","name":"Do not display seconds for the relative timestamp in the message timestamp.","value":false}],"main":"index.js"};
 
 	return !global.ZeresPluginLibrary ? class {
 		constructor() {
@@ -91,11 +91,13 @@ module.exports = (() => {
     func: 'seconds',
     display: 's'
   }];
+  const unitsWithoutSeconds = units.slice(0, -1);
 
-  function formatAgo(start, end) {
+  function formatAgo(start, end, hideSeconds) {
     let duration = moment.duration(end - start),
-        parts = [];
-    units.forEach(unit => {
+        parts = [],
+        useUnits = hideSeconds ? unitsWithoutSeconds : units;
+    useUnits.forEach(unit => {
       let time = duration[unit.func]();
       if (time) parts.push(time + unit.display);
     });
@@ -139,7 +141,7 @@ module.exports = (() => {
     render() {
       return /*#__PURE__*/React.createElement("span", {
         ref: this.ref
-      }, " - ", formatAgo(this.props.start, this.state.end));
+      }, " - ", formatAgo(this.props.start, this.state.end, this.props.shouldHideSeconds?.()));
     }
 
   }
@@ -147,20 +149,22 @@ module.exports = (() => {
   return class NotificationFilter extends Plugin {
     // Discord sometimes sets the timestamp in the future
     earliestKnownExistences = {};
+    shouldHideSeconds = () => this.settings.hideSeconds;
 
     getEarliestKnownExistence(id) {
       if (id && !this.earliestKnownExistences[id]) this.earliestKnownExistences[id] = Date.now();
       return this.earliestKnownExistences[id] || Date.now();
     }
 
-    addToTimestamp(props, timestamp) {
+    addToTimestamp(messageSent, timestamp) {
       let renderChildren = timestamp.props.children.props.children;
 
       timestamp.props.children.props.children = (...childrenArgs) => {
         let children = renderChildren(...childrenArgs);
         if (!Array.isArray(children.props.children)) children.props.children = [children.props.children];
         children.props.children.push( /*#__PURE__*/React.createElement(AgoElement, {
-          start: Math.min(props.timestamp.valueOf(), this.getEarliestKnownExistence(props.id))
+          start: messageSent,
+          shouldHideSeconds: this.shouldHideSeconds
         }));
         return children;
       };
@@ -169,9 +173,10 @@ module.exports = (() => {
     onStart() {
       Patcher.after(MessageTimestamp, 'default', (_, [props], val) => {
         let isEditTimestamp = props.children?.props.className === messageClasses.edited;
-        if (!props.compact && !isEditTimestamp && this.settings.showInTimestamp) this.addToTimestamp(props, val);
+        let messageSent = Math.min(props.timestamp.valueOf(), this.getEarliestKnownExistence(props.id));
+        if (!props.compact && !isEditTimestamp && this.settings.showInTimestamp) this.addToTimestamp(messageSent, val);
         val.props.children.props.text = /*#__PURE__*/React.createElement("div", null, val.props.children.props.text, /*#__PURE__*/React.createElement(AgoElement, {
-          start: Math.min(props.timestamp.valueOf(), this.getEarliestKnownExistence(props.id))
+          start: messageSent
         }));
       }); // Needed to update compact timestamps since they use memo
 
