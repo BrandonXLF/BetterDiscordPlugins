@@ -5,25 +5,7 @@ module.exports = (() => {
 	return !global.ZeresPluginLibrary ? class {
 		constructor() {
 			this._config = config;
-		}
 
-		getName() {
-			return config.info.name;
-		}
-
-		getAuthor() {
-			return config.info.authors.map(a => a.name).join(', ');
-		}
-
-		getDescription() {
-			return config.info.description;
-		}
-
-		getVersion() {
-			return config.info.version;
-		}
-	
-		load() {
 			BdApi.showConfirmationModal(
 				'Library Missing',
 				`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`,

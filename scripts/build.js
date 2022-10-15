@@ -49,16 +49,21 @@ const path = require('path');
 			'description': config.info.description,
 			'website': config.info.github,
 			'source': config.info.github_raw,
-			'patreon': config.info.patreonLink,
-			'donate': config.info.paypalLink,
-			'authorLink': config.info.authorLink,
+			'patreon': config.info.patreon,
+			'donate': config.info.donate,
+			'authorId': config.info.authors[0].id,
+			'authorLink': config.info.authors[0].link,
 			'invite': config.info.inviteCode,
 		});
+		
+		let pluginSource = require(path.join(pluginPath, config.main)).toString();
+		pluginSource = pluginSource.replace(/^ +/gm, m => '\t'.repeat(m.length / 2));
+		pluginSource = pluginSource.replace(/^/gm, '\t').trim();
 		
 		const result = formatString(template, {
 			HEADER: header,
 			CONFIG: JSON.stringify(config),
-			FUNCTION: require(path.join(pluginPath, config.main)).toString()
+			FUNCTION: pluginSource
 		});
 		
 		const buildFileName = `${pluginName}.plugin.js`;
