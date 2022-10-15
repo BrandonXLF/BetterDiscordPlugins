@@ -1,8 +1,12 @@
 module.exports = (Plugin, Library) => {
-	const { Patcher, DiscordModules, WebpackModules, Utilities } = Library;
+	const { Patcher, DiscordModules, WebpackModules } = Library;
 	const { React } = DiscordModules;
-	const MessageTimestamp = WebpackModules.find(m => m.default?.displayName == 'MessageTimestamp');
-	const Message = WebpackModules.find(m => m?.default.toString().includes('childrenHeader', 'childrenMessageContent'));
+	const MessageTimestamp = WebpackModules.find(
+		m => m?.toString?.().includes('MESSAGE_EDITED_TIMESTAMP_A11Y_LABEL'),
+		{
+			defaultExport: false
+		}
+	);
 	const moment = WebpackModules.getByProps('duration', 'now');
 	const messageClasses = WebpackModules.getByProps('messageContent', 'timestampInline');
 	const units = [
@@ -112,7 +116,7 @@ module.exports = (Plugin, Library) => {
 		}
 		
 		onStart() {
-			Patcher.after(MessageTimestamp, 'default', (_, [props], val) => {
+			Patcher.after(MessageTimestamp, 'Z', (_, [props], val) => {
 				let isEditTimestamp = props.children?.props.className === messageClasses.edited;
 
 				let messageSent = Math.min(props.timestamp.valueOf(), this.getEarliestKnownExistence(props.id));
@@ -123,12 +127,6 @@ module.exports = (Plugin, Library) => {
 					{val.props.children.props.text}
 					<AgoElement start={messageSent} />
 				</div>;
-			});
-			
-			// Needed to update compact timestamps since they use memo
-			Patcher.after(Message, 'default', (_, __, val) => {
-				let messageTimestamp = Utilities.findInReactTree(val, c => c?.type?.type?.displayName == 'MessageTimestamp');
-				if (messageTimestamp) messageTimestamp.type.type = MessageTimestamp.default;
 			});
 		}
 

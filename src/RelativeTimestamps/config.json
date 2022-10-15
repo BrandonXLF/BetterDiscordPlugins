@@ -1,15 +1,8 @@
 {
 	"info": {
-		"version": "1.1.0",
+		"version": "1.2.0",
 		"description": "Add relative timestamps to messages."
 	},
-	"changelog": [
-		{
-			"title": "New Setting",
-			"type": "improved",
-			"items": ["Added a setting to remove seconds from message timestamps"]
-		}
-	],
 	"defaultConfig": [
 		{
 			"type": "switch",
