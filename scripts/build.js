@@ -36,9 +36,9 @@ const path = require('path');
 			name: pluginName,
 			github: `https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/${pluginName}`,
 			github_raw: `https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/${pluginName}.plugin.js`,
-			authorLink: `https://github.com/BrandonXLF/`,
 			authors: [{
-				name: 'BrandonXLF'
+				name: 'BrandonXLF',
+				link: `https://github.com/BrandonXLF/`
 			}]
 		});
 		

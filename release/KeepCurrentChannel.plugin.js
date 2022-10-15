@@ -1,13 +1,14 @@
 /**
  * @name KeepCurrentChannel
- * @version 1.1.0
+ * @version 1.1.1
  * @author BrandonXLF
  * @description Attempt to navigate the channel you were in before switching accounts.
  * @website https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/KeepCurrentChannel
  * @source https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/KeepCurrentChannel.plugin.js
+ * @authorLink https://github.com/BrandonXLF/
  */
 module.exports = (() => {
-	const config = {"info":{"version":"1.1.0","description":"Attempt to navigate the channel you were in before switching accounts.","name":"KeepCurrentChannel","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/KeepCurrentChannel","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/KeepCurrentChannel.plugin.js","authorLink":"https://github.com/BrandonXLF/","authors":[{"name":"BrandonXLF"}]},"main":"index.js"};
+	const config = {"info":{"version":"1.1.1","description":"Attempt to navigate the channel you were in before switching accounts.","name":"KeepCurrentChannel","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/KeepCurrentChannel","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/KeepCurrentChannel.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"main":"index.js"};
 
 	return !global.ZeresPluginLibrary ? class {
 		constructor() {
