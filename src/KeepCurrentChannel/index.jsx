@@ -18,7 +18,7 @@ module.exports = (Plugin, Library) => {
 			Patcher.after(Dispatcher, 'dispatch', (_, [e]) => {
 				if (e.type == 'CONNECTION_OPEN' && this.previous) {
 					if (ChannelStore.hasChannel(this.previous.channel))
-						NavigationUtils.transitionToGuild(this.previous.guild, this.previous.channel);
+						NavigationUtils.transitionToGuild(this.previous.guild, null, this.previous.channel);
 
 					this.previous = undefined;
 				}
