@@ -1,6 +1,6 @@
 /**
  * @name NotificationHistory
- * @version 2.0.0
+ * @version 2.1.0
  * @author BrandonXLF
  * @description View a list of all the notifications you've received since Discord was opened.
  * @website https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory
@@ -8,7 +8,7 @@
  * @authorLink https://github.com/BrandonXLF/
  */
 module.exports = (() => {
-	const config = {"info":{"version":"2.0.0","description":"View a list of all the notifications you've received since Discord was opened.","name":"NotificationHistory","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/NotificationHistory.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"main":"index.js"};
+	const config = {"info":{"version":"2.1.0","description":"View a list of all the notifications you've received since Discord was opened.","name":"NotificationHistory","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/NotificationHistory.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"main":"index.js"};
 
 	return !global.ZeresPluginLibrary ? class {
 		constructor() {
@@ -120,19 +120,17 @@ module.exports = (() => {
 				let channel = ChannelStore.getChannel(this.props.notification.channelId);
 				if (!message || !channel) return null;
 	
-				let goToChannel = () => transitionToGuild(channel.getGuildId(), channel.id);
-	
 				let goToMessage = () => transitionToGuild(channel.getGuildId(), channel.id, message.id);
 	
 				let guild = GuildStore.getGuild(channel.getGuildId());
 				let channelName = getChannelName(channel, UserStore, RelationshipStore, true);
 				let img = channel.isPrivate() ? /*#__PURE__*/React.createElement("img", {
 					className: channelHeaderClasses.dmIcon,
-					onClick: goToChannel,
+					onClick: goToMessage,
 					src: getDMIcon(channel, 80)
 				}) : /*#__PURE__*/React.createElement(GuildIcon, {
 					className: channelHeaderClasses.guildIcon,
-					onClick: goToChannel,
+					onClick: goToMessage,
 					guild: guild,
 					active: true,
 					animate: false,
@@ -142,13 +140,22 @@ module.exports = (() => {
 					className: RMChannelClasses.channel
 				}, /*#__PURE__*/React.createElement("div", {
 					className: `${channelHeaderClasses.channelHeader} notification-history-meg-header`
-				}, img, /*#__PURE__*/React.createElement(Heading, {
-					className: channelHeaderClasses.channelName,
-					variant: "heading-md/medium",
-					onClick: goToChannel
+				}, img, /*#__PURE__*/React.createElement("div", {
+					className: channelHeaderClasses.channelNameSection,
+					onClick: goToMessage
+				}, /*#__PURE__*/React.createElement(Heading, {
+					className: channelHeaderClasses.channelNameHeader,
+					variant: "heading-md/medium"
+				}, /*#__PURE__*/React.createElement("div", {
+					className: channelHeaderClasses.channelName
 				}, /*#__PURE__*/React.createElement("span", {
 					className: channelHeaderClasses.channelNameSpan
-				}, channelName, guild?.name && ` (${guild?.name})`))), /*#__PURE__*/React.createElement("div", {
+				}, channelName))), guild?.name && /*#__PURE__*/React.createElement(Heading, {
+					className: channelHeaderClasses.subtextContainer,
+					variant: "text-sm/normal"
+				}, /*#__PURE__*/React.createElement("div", {
+					className: `${channelHeaderClasses.subtext} ${channelHeaderClasses.guildName}`
+				}, guild.name)))), /*#__PURE__*/React.createElement("div", {
 					className: RMMessageClasses.messages
 				}, /*#__PURE__*/React.createElement("div", {
 					className: RMMessageClasses.messageContainer

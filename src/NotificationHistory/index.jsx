@@ -92,21 +92,19 @@ module.exports = (Plugin, Library) => {
 			
 			if (!message || !channel) return null;
 			
-			let goToChannel = () => transitionToGuild(channel.getGuildId(), channel.id);
 			let goToMessage = () => transitionToGuild(channel.getGuildId(), channel.id, message.id);
-			
 			let guild = GuildStore.getGuild(channel.getGuildId());
 			let channelName = getChannelName(channel, UserStore, RelationshipStore, true);
 			
 			let img = channel.isPrivate()
 				? <img
 					className={channelHeaderClasses.dmIcon}
-					onClick={goToChannel}
+					onClick={goToMessage}
 					src={getDMIcon(channel, 80)}
 				/>
 				: <GuildIcon
 					className={channelHeaderClasses.guildIcon}
-					onClick={goToChannel}
+					onClick={goToMessage}
 					guild={guild}
 					active={true}
 					animate={false}
@@ -116,16 +114,29 @@ module.exports = (Plugin, Library) => {
 			return <div className={RMChannelClasses.channel}>
 				<div className={`${channelHeaderClasses.channelHeader} notification-history-meg-header`}>
 					{img}
-					<Heading
-						className={channelHeaderClasses.channelName}
-						variant="heading-md/medium"
-						onClick={goToChannel}
+					<div
+						className={channelHeaderClasses.channelNameSection}
+						onClick={goToMessage}
 					>
-						<span className={channelHeaderClasses.channelNameSpan}>
-							{channelName}
-							{guild?.name && ` (${guild?.name})`}
-						</span>
-					</Heading>
+						<Heading
+							className={channelHeaderClasses.channelNameHeader}
+							variant="heading-md/medium"
+						>
+							<div className={channelHeaderClasses.channelName}>
+								<span className={channelHeaderClasses.channelNameSpan}>
+									{channelName}
+								</span>
+							</div>
+						</Heading>
+						{guild?.name && <Heading
+							className={channelHeaderClasses.subtextContainer}
+							variant="text-sm/normal"
+						>
+							<div className={`${channelHeaderClasses.subtext} ${channelHeaderClasses.guildName}`}>
+								{guild.name}
+							</div>
+						</Heading>}
+					</div>
 				</div>
 				<div className={RMMessageClasses.messages}>
 					<div className={RMMessageClasses.messageContainer}>
