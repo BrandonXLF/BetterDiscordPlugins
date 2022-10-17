@@ -1,20 +1,66 @@
 module.exports = (Plugin, Library) => {
 	const { Patcher, DiscordModules, WebpackModules, DOMTools } = Library;
-	const { React, MessageStore, NavigationUtils } = DiscordModules;
-	const RPC = WebpackModules.getByProps('handleNotificationCreate');
-	const HeaderBar = WebpackModules.find(m => m.default?.displayName == 'HeaderBar');
-	const { ScrollerThin } = WebpackModules.getByProps('ScrollerThin');
-	const IconElement = WebpackModules.getByProps('Icon').Icon;
-	const Popout = WebpackModules.findByDisplayName('Popout');
-	const RecentsChannelHeader = WebpackModules.getByDisplayName('RecentsChannelHeader');
-	const JumpToMessageButton = WebpackModules.getByDisplayName('JumpToMessageButton');
-	const ChannelMessage = WebpackModules.find(m => m?.default?.type.toString().includes('subscribeToComponentDispatch')).default.type;
+	const { React, UserStore, RelationshipStore } = DiscordModules;
+	const createMessage = WebpackModules.find(
+		m => m?.toString?.().includes('mention_everyone') && m?.toString?.().includes('return new'),
+		{
+			searchExports: true
+		}
+	);
+	const Dispatcher = WebpackModules.getByProps('subscribe', '_subscriptions');
+	const HeaderBar = WebpackModules.find(
+		m => m?.toString?.().includes('.toolbar'),
+		{
+			defaultExport: false
+		}
+	);
+	const ScrollerThin = WebpackModules.find(m => {
+		let str = m?.render?.toString?.();
+		
+		return str?.includes('scrollerRef') && str?.includes('paddingFix')
+	});
+	const IconElement = WebpackModules.find(
+		m => m?.toString?.().includes('iconWrapper') && m?.toString?.().includes('hideOnClick'),
+		{
+			defaultExport: false,
+			searchExports: true
+		}
+	);
+	const transitionToGuild = WebpackModules.find(
+		m => m?.toString?.().includes('transitionToGuild - '),
+		{
+			searchExports: true
+		}
+	);
+	const Popout = WebpackModules.find(m => m?.toString?.().includes('handlePopoutPositionChange'));
+	const Heading = WebpackModules.find(
+		m => m?.toString?.().includes('data-excessive-heading-level'),
+		{
+			searchExports: true
+		}
+	);
+	const getChannelName = WebpackModules.find(
+		m => m?.toString?.().includes('.recipients.map') && m?.toString?.().includes('#'),
+		{
+			searchExports: true
+		}
+	);
+	const getDMIcon = WebpackModules.find(
+		m => m?.toString?.().includes('getChannelIconURL'),
+		{
+			searchExports: true,
+		}
+	);
+	const GuildIcon = WebpackModules.find(m => m.defaultProps?.showBadge !== undefined);
+	const ChannelMessage = WebpackModules.find(m => m?.type?.toString?.().includes('messageReference'));
 	const ChannelStore = WebpackModules.getByProps('getChannel', 'getDMFromUserId');
-	const sizeClasses = WebpackModules.getByProps('size16');
-	const titleClasses = WebpackModules.getByProps('base', 'uppercase');
+	const GuildStore = WebpackModules.getByProps('getGuild', 'getGuildCount');
 	const iconClasses = WebpackModules.getByProps('container', 'children', 'toolbar', 'iconWrapper');
 	const inboxClasses = WebpackModules.getByProps('messagesPopout', 'messagesPopoutWrap', 'emptyPlaceholder');
-	const recentMentionsClasses = WebpackModules.getByProps('message', 'recentMentionsPopout');
+	const RMPopoutClasses = WebpackModules.getByProps('expandedMarkAllReadContainer', 'container');
+	const RMMessageClasses = WebpackModules.getByProps('messages', 'message', 'messageContainer');
+	const RMChannelClasses = WebpackModules.getByProps('collapseButton', 'channel');
+	const channelHeaderClasses = WebpackModules.getByProps('guildIcon', 'dmIcon');
 	
 	class NotificationStore extends EventTarget {
 		#notifications = [];
@@ -35,41 +81,62 @@ module.exports = (Plugin, Library) => {
 		}
 	}
 	
-	class NotificationElement extends React.Component  {
+	class NotificationElement extends React.Component {
 		constructor(props) {
 			super(props);
 		}
 		
-		onClick() {
-			this.props.notification.onclick();
-		}
-		
 		render() {
-			let msg = MessageStore.getMessage(
-				this.props.notification.message.channel_id,
-				this.props.notification.message.id
-			);
-			
+			let message = createMessage(this.props.notification.message);
 			let channel = ChannelStore.getChannel(this.props.notification.channelId);
-			let goToMessage = () => NavigationUtils.transitionToGuild(channel.getGuildId(), channel.id, msg.id);
 			
-			if (!msg || !channel) return null;
+			if (!message || !channel) return null;
 			
-			return <div className={recentMentionsClasses.container}>
-				<RecentsChannelHeader
-					channel={channel}
-					gotoChannel={goToMessage}
+			let goToChannel = () => transitionToGuild(channel.getGuildId(), channel.id);
+			let goToMessage = () => transitionToGuild(channel.getGuildId(), channel.id, message.id);
+			
+			let guild = GuildStore.getGuild(channel.getGuildId());
+			let channelName = getChannelName(channel, UserStore, RelationshipStore, true);
+			
+			let img = channel.isPrivate()
+				? <img
+					className={channelHeaderClasses.dmIcon}
+					onClick={goToChannel}
+					src={getDMIcon(channel, 80)}
 				/>
-				<div className={recentMentionsClasses.messageContainer}>
-					<JumpToMessageButton
-						className={recentMentionsClasses.jumpButton}
-						onJump={goToMessage}
-					/>
-					<ChannelMessage
-						message={msg}
-						channel={channel}
-						className={recentMentionsClasses.message}
-					/>
+				: <GuildIcon
+					className={channelHeaderClasses.guildIcon}
+					onClick={goToChannel}
+					guild={guild}
+					active={true}
+					animate={false}
+					size={GuildIcon.Sizes.MEDIUM}
+				/>;
+			
+			return <div className={RMChannelClasses.channel}>
+				<div className={`${channelHeaderClasses.channelHeader} notification-history-meg-header`}>
+					{img}
+					<Heading
+						className={channelHeaderClasses.channelName}
+						variant="heading-md/medium"
+						onClick={goToChannel}
+					>
+						<span className={channelHeaderClasses.channelNameSpan}>
+							{channelName}
+							{guild?.name && ` (${guild?.name})`}
+						</span>
+					</Heading>
+				</div>
+				<div className={RMMessageClasses.messages}>
+					<div className={RMMessageClasses.messageContainer}>
+						<ChannelMessage
+							className={`${RMMessageClasses.message} notification-history-message`}
+							animateAvatar={false}
+							message={message}
+							channel={channel}
+							onClick={goToMessage}
+						/>
+					</div>
 				</div>
 			</div>;
 		}
@@ -90,18 +157,25 @@ module.exports = (Plugin, Library) => {
 		}
 
 		render() {
-			return <div aria-label="Notification History" role="dialog" tabIndex="-1" aria-model="true">
-				<div className={`${inboxClasses.messagesPopoutWrap} notification-history-container`} style={{maxHeight: window.innerHeight - 80 + 'px'}}>
-					<div className={`${inboxClasses.header} notification-history-header`}>
-						<div className={`${titleClasses.base} ${sizeClasses.size16}`}>Notification History</div>
+			return <div
+				aria-label="Notification History"
+				role="dialog"
+				tabIndex="-1"
+				aria-model="true"
+			>
+				<div className={RMPopoutClasses.container}>
+					<div className={inboxClasses.header} style={{zIndex: '100'}}>
+						<Heading variant="heading-md/medium">
+							Notification History
+						</Heading>
 					</div>
-					<ScrollerThin className="notification-history-list">
+					<ScrollerThin className={RMPopoutClasses.scroller}>
 						{this.props.notificationStore.length
-							? this.props.notificationStore.getAll().map(notification => {
-								return <NotificationElement key={notification.message.id} notification={notification} closeModal={this.props.onClose} />;
-							})
-							: <div className={inboxClasses.emptyPlaceholder}>
-								<div className={inboxClasses.body}>Any notifications you receive will be recorded here.</div>
+							? this.props.notificationStore.getAll().map(notification => 
+								<NotificationElement key={notification.message.id} notification={notification} closeModal={this.props.onClose} />
+							)
+							: <div className="notification-history-placeholder">
+								Any notifications you receive will be recorded here.
 							</div>
 						}
 					</ScrollerThin>
@@ -155,52 +229,44 @@ module.exports = (Plugin, Library) => {
 
 	return class NotificationHistory extends Plugin {
 		notificationStore = new NotificationStore();
+		onNotification = notification => this.notificationStore.add(notification);
 
 		onStart() {
-			Patcher.after(RPC, 'handleNotificationCreate', (_, [notification]) => {
-				if (!notification) return;
-				
-				this.notificationStore.add(notification);
-			});
+			Dispatcher.subscribe('RPC_NOTIFICATION_CREATE', this.onNotification);
 
-			Patcher.before(HeaderBar, 'default', (_, [props]) => {
+			Patcher.before(HeaderBar, 'ZP', (_, [props]) => {
 				if (!props) return;
 				
 				let toolbarChildren = props.toolbar.props.children;
-				let btnIndex = toolbarChildren.findIndex(x => x?.type?.displayName == 'RecentsButton');
+				
+				if (!toolbarChildren) return;
+				
+				let btnIndex = toolbarChildren.findIndex(x => x?.type?.toString().includes('INBOX'));
 				
 				toolbarChildren.splice(btnIndex, 0, <NotificationHistoryIconElement notificationStore={this.notificationStore}/>);
 			});
 			
 			DOMTools.addStyle('notification-history-styles', `
-				.notification-history-container {
-					width: 480px;
+				.notification-history-placeholder {
+					margin: 4em 0;
+					color: var(--text-normal);
+					text-align: center;
 				}
-			
-				.notification-history-header {
-					background: var(--background-tertiary);
-				}
-			
-				.notification-history-record {
-					display: flex;
-					margin: 12px;
-					padding: 12px;
-					background: var(--background-primary);
+				
+				.notification-history-message:hover {
 					cursor: pointer;
 				}
 				
-				.notification-history-icon {
-					display: flex;
-				}
-				
-				.notification-history-icon img {
-					height: 48px;
-					margin-right: 12px;
+				.notification-history-meg-header {
+					position: static;
+					padding-left: 0;
 				}
 			`);
 		}
 
 		onStop() {
+			Dispatcher.unsubscribe('RPC_NOTIFICATION_CREATE', this.onNotification);
+			
 			Patcher.unpatchAll();
 			
 			DOMTools.removeStyle('notification-history-styles');

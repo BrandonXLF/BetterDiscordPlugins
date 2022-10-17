@@ -1,6 +1,6 @@
 /**
  * @name NotificationHistory
- * @version 1.1.1
+ * @version 2.0.0
  * @author BrandonXLF
  * @description View a list of all the notifications you've received since Discord was opened.
  * @website https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory
@@ -8,30 +8,12 @@
  * @authorLink https://github.com/BrandonXLF/
  */
 module.exports = (() => {
-	const config = {"info":{"version":"1.1.1","description":"View a list of all the notifications you've received since Discord was opened.","name":"NotificationHistory","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/NotificationHistory.plugin.js","authorLink":"https://github.com/BrandonXLF/","authors":[{"name":"BrandonXLF"}]},"main":"index.js"};
+	const config = {"info":{"version":"2.0.0","description":"View a list of all the notifications you've received since Discord was opened.","name":"NotificationHistory","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/NotificationHistory.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"main":"index.js"};
 
 	return !global.ZeresPluginLibrary ? class {
 		constructor() {
 			this._config = config;
-		}
 
-		getName() {
-			return config.info.name;
-		}
-
-		getAuthor() {
-			return config.info.authors.map(a => a.name).join(', ');
-		}
-
-		getDescription() {
-			return config.info.description;
-		}
-
-		getVersion() {
-			return config.info.version;
-		}
-	
-		load() {
 			BdApi.showConfirmationModal(
 				'Library Missing',
 				`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`,
@@ -59,254 +41,280 @@ module.exports = (() => {
 
 		stop() {}
 	} : ((Plugin, Library) => {
-  const {
-    Patcher,
-    DiscordModules,
-    WebpackModules,
-    DOMTools
-  } = Library;
-  const {
-    React,
-    MessageStore,
-    NavigationUtils
-  } = DiscordModules;
-  const RPC = WebpackModules.getByProps('handleNotificationCreate');
-  const HeaderBar = WebpackModules.find(m => m.default?.displayName == 'HeaderBar');
-  const {
-    ScrollerThin
-  } = WebpackModules.getByProps('ScrollerThin');
-  const IconElement = WebpackModules.getByProps('Icon').Icon;
-  const Popout = WebpackModules.findByDisplayName('Popout');
-  const RecentsChannelHeader = WebpackModules.getByDisplayName('RecentsChannelHeader');
-  const JumpToMessageButton = WebpackModules.getByDisplayName('JumpToMessageButton');
-  const ChannelMessage = WebpackModules.find(m => m?.default?.type.toString().includes('subscribeToComponentDispatch')).default.type;
-  const ChannelStore = WebpackModules.getByProps('getChannel', 'getDMFromUserId');
-  const sizeClasses = WebpackModules.getByProps('size16');
-  const titleClasses = WebpackModules.getByProps('base', 'uppercase');
-  const iconClasses = WebpackModules.getByProps('container', 'children', 'toolbar', 'iconWrapper');
-  const inboxClasses = WebpackModules.getByProps('messagesPopout', 'messagesPopoutWrap', 'emptyPlaceholder');
-  const recentMentionsClasses = WebpackModules.getByProps('message', 'recentMentionsPopout');
-
-  class NotificationStore extends EventTarget {
-    #notifications = [];
-
-    add(notification) {
-      if (this.#notifications.includes(notification)) return;
-      this.#notifications.unshift(notification);
-      this.dispatchEvent(new CustomEvent('notification'));
-    }
-
-    getAll() {
-      return this.#notifications;
-    }
-
-    get length() {
-      return this.#notifications.length;
-    }
-
-  }
-
-  class NotificationElement extends React.Component {
-    constructor(props) {
-      super(props);
-    }
-
-    onClick() {
-      this.props.notification.onclick();
-    }
-
-    render() {
-      let msg = MessageStore.getMessage(this.props.notification.message.channel_id, this.props.notification.message.id);
-      let channel = ChannelStore.getChannel(this.props.notification.channelId);
-
-      let goToMessage = () => NavigationUtils.transitionToGuild(channel.getGuildId(), channel.id, msg.id);
-
-      if (!msg || !channel) return null;
-      return /*#__PURE__*/React.createElement("div", {
-        className: recentMentionsClasses.container
-      }, /*#__PURE__*/React.createElement(RecentsChannelHeader, {
-        channel: channel,
-        gotoChannel: goToMessage
-      }), /*#__PURE__*/React.createElement("div", {
-        className: recentMentionsClasses.messageContainer
-      }, /*#__PURE__*/React.createElement(JumpToMessageButton, {
-        className: recentMentionsClasses.jumpButton,
-        onJump: goToMessage
-      }), /*#__PURE__*/React.createElement(ChannelMessage, {
-        message: msg,
-        channel: channel,
-        className: recentMentionsClasses.message
-      })));
-    }
-
-  }
-
-  class NotificationHistoryDialogElement extends React.Component {
-    constructor(props) {
-      super(props);
-      this.props.notificationStore.addEventListener('notification', this);
-    }
-
-    handleEvent(e) {
-      if (e.type === 'notification') this.forceUpdate();
-    }
-
-    componentWillUnmount() {
-      this.props.notificationStore.removeEventListener('notification', this);
-    }
-
-    render() {
-      return /*#__PURE__*/React.createElement("div", {
-        "aria-label": "Notification History",
-        role: "dialog",
-        tabIndex: "-1",
-        "aria-model": "true"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: `${inboxClasses.messagesPopoutWrap} notification-history-container`,
-        style: {
-          maxHeight: window.innerHeight - 80 + 'px'
-        }
-      }, /*#__PURE__*/React.createElement("div", {
-        className: `${inboxClasses.header} notification-history-header`
-      }, /*#__PURE__*/React.createElement("div", {
-        className: `${titleClasses.base} ${sizeClasses.size16}`
-      }, "Notification History")), /*#__PURE__*/React.createElement(ScrollerThin, {
-        className: "notification-history-list"
-      }, this.props.notificationStore.length ? this.props.notificationStore.getAll().map(notification => {
-        return /*#__PURE__*/React.createElement(NotificationElement, {
-          key: notification.message.id,
-          notification: notification,
-          closeModal: this.props.onClose
-        });
-      }) : /*#__PURE__*/React.createElement("div", {
-        className: inboxClasses.emptyPlaceholder
-      }, /*#__PURE__*/React.createElement("div", {
-        className: inboxClasses.body
-      }, "Any notifications you receive will be recorded here.")))));
-    }
-
-  }
-
-  class NotificationHistoryIconElement extends React.Component {
-    constructor(props) {
-      super(props);
-      this.state = {
-        open: false
-      };
-    }
-
-    createIcon() {
-      return /*#__PURE__*/React.createElement("svg", {
-        xmlns: "http://www.w3.org/2000/svg",
-        class: iconClasses.icon,
-        viewBox: "0 0 24 24",
-        fill: "currentColor",
-        "stroke-width": "0"
-      }, /*#__PURE__*/React.createElement("path", {
-        d: "M18 9V14C18 15.657 19.344 17 21 17V18H3V17C4.656 17 6 15.657 6 14V9C6 5.686 8.686 3 12 3C15.314 3 18 5.686 18 9ZM11.9999 21C10.5239 21 9.24793 20.19 8.55493 19H15.4449C14.7519 20.19 13.4759 21 11.9999 21Z",
-        mask: "url(#circle)"
-      }), /*#__PURE__*/React.createElement("g", {
-        transform: "translate(12, 12) scale(0.5)",
-        fill: "none",
-        stroke: "currentColor",
-        "stroke-width": "3",
-        "stroke-linecap": "round",
-        "stroke-linejoin": "round"
-      }, /*#__PURE__*/React.createElement("polyline", {
-        points: "12 8 12 12 14 14"
-      }), /*#__PURE__*/React.createElement("path", {
-        d: "M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"
-      })), /*#__PURE__*/React.createElement("mask", {
-        id: "circle"
-      }, /*#__PURE__*/React.createElement("rect", {
-        width: "100%",
-        height: "100%",
-        fill: "white"
-      }), /*#__PURE__*/React.createElement("circle", {
-        cx: "17",
-        cy: "17",
-        r: "6.5",
-        fill: "black"
-      })));
-    }
-
-    render() {
-      return /*#__PURE__*/React.createElement(Popout, {
-        align: "right",
-        position: "bottom",
-        animation: "1",
-        shouldShow: this.state.open,
-        onRequestClose: () => this.setState({
-          open: false
-        }),
-        ignoreModalClicks: true,
-        autoInvert: false,
-        renderPopout: popoutProps => {
-          popoutProps.notificationStore = this.props.notificationStore;
-          return /*#__PURE__*/React.createElement(NotificationHistoryDialogElement, popoutProps);
-        },
-        children: (_, popoutState) => /*#__PURE__*/React.createElement(IconElement, {
-          icon: this.createIcon.bind(this),
-          onClick: () => this.setState(state => ({
-            open: !state.open
-          })),
-          tooltip: popoutState.isShown ? null : "Notification History",
-          selected: popoutState.isShown
-        })
-      });
-    }
-
-  }
-
-  return class NotificationHistory extends Plugin {
-    notificationStore = new NotificationStore();
-
-    onStart() {
-      Patcher.after(RPC, 'handleNotificationCreate', (_, [notification]) => {
-        if (!notification) return;
-        this.notificationStore.add(notification);
-      });
-      Patcher.before(HeaderBar, 'default', (_, [props]) => {
-        if (!props) return;
-        let toolbarChildren = props.toolbar.props.children;
-        let btnIndex = toolbarChildren.findIndex(x => x?.type?.displayName == 'RecentsButton');
-        toolbarChildren.splice(btnIndex, 0, /*#__PURE__*/React.createElement(NotificationHistoryIconElement, {
-          notificationStore: this.notificationStore
-        }));
-      });
-      DOMTools.addStyle('notification-history-styles', `
-				.notification-history-container {
-					width: 480px;
-				}
-			
-				.notification-history-header {
-					background: var(--background-tertiary);
-				}
-			
-				.notification-history-record {
-					display: flex;
-					margin: 12px;
-					padding: 12px;
-					background: var(--background-primary);
-					cursor: pointer;
-				}
-				
-				.notification-history-icon {
-					display: flex;
-				}
-				
-				.notification-history-icon img {
-					height: 48px;
-					margin-right: 12px;
-				}
-			`);
-    }
-
-    onStop() {
-      Patcher.unpatchAll();
-      DOMTools.removeStyle('notification-history-styles');
-    }
-
-  };
-})(...global.ZeresPluginLibrary.buildPlugin(config));
+		const {
+			Patcher,
+			DiscordModules,
+			WebpackModules,
+			DOMTools
+		} = Library;
+		const {
+			React,
+			UserStore,
+			RelationshipStore
+		} = DiscordModules;
+		const createMessage = WebpackModules.find(m => m?.toString?.().includes('mention_everyone') && m?.toString?.().includes('return new'), {
+			searchExports: true
+		});
+		const Dispatcher = WebpackModules.getByProps('subscribe', '_subscriptions');
+		const HeaderBar = WebpackModules.find(m => m?.toString?.().includes('.toolbar'), {
+			defaultExport: false
+		});
+		const ScrollerThin = WebpackModules.find(m => {
+			let str = m?.render?.toString?.();
+			return str?.includes('scrollerRef') && str?.includes('paddingFix');
+		});
+		const IconElement = WebpackModules.find(m => m?.toString?.().includes('iconWrapper') && m?.toString?.().includes('hideOnClick'), {
+			defaultExport: false,
+			searchExports: true
+		});
+		const transitionToGuild = WebpackModules.find(m => m?.toString?.().includes('transitionToGuild - '), {
+			searchExports: true
+		});
+		const Popout = WebpackModules.find(m => m?.toString?.().includes('handlePopoutPositionChange'));
+		const Heading = WebpackModules.find(m => m?.toString?.().includes('data-excessive-heading-level'), {
+			searchExports: true
+		});
+		const getChannelName = WebpackModules.find(m => m?.toString?.().includes('.recipients.map') && m?.toString?.().includes('#'), {
+			searchExports: true
+		});
+		const getDMIcon = WebpackModules.find(m => m?.toString?.().includes('getChannelIconURL'), {
+			searchExports: true
+		});
+		const GuildIcon = WebpackModules.find(m => m.defaultProps?.showBadge !== undefined);
+		const ChannelMessage = WebpackModules.find(m => m?.type?.toString?.().includes('messageReference'));
+		const ChannelStore = WebpackModules.getByProps('getChannel', 'getDMFromUserId');
+		const GuildStore = WebpackModules.getByProps('getGuild', 'getGuildCount');
+		const iconClasses = WebpackModules.getByProps('container', 'children', 'toolbar', 'iconWrapper');
+		const inboxClasses = WebpackModules.getByProps('messagesPopout', 'messagesPopoutWrap', 'emptyPlaceholder');
+		const RMPopoutClasses = WebpackModules.getByProps('expandedMarkAllReadContainer', 'container');
+		const RMMessageClasses = WebpackModules.getByProps('messages', 'message', 'messageContainer');
+		const RMChannelClasses = WebpackModules.getByProps('collapseButton', 'channel');
+		const channelHeaderClasses = WebpackModules.getByProps('guildIcon', 'dmIcon');
+	
+		class NotificationStore extends EventTarget {
+			#notifications = [];
+	
+			add(notification) {
+				if (this.#notifications.includes(notification)) return;
+				this.#notifications.unshift(notification);
+				this.dispatchEvent(new CustomEvent('notification'));
+			}
+	
+			getAll() {
+				return this.#notifications;
+			}
+	
+			get length() {
+				return this.#notifications.length;
+			}
+	
+		}
+	
+		class NotificationElement extends React.Component {
+			constructor(props) {
+				super(props);
+			}
+	
+			render() {
+				let message = createMessage(this.props.notification.message);
+				let channel = ChannelStore.getChannel(this.props.notification.channelId);
+				if (!message || !channel) return null;
+	
+				let goToChannel = () => transitionToGuild(channel.getGuildId(), channel.id);
+	
+				let goToMessage = () => transitionToGuild(channel.getGuildId(), channel.id, message.id);
+	
+				let guild = GuildStore.getGuild(channel.getGuildId());
+				let channelName = getChannelName(channel, UserStore, RelationshipStore, true);
+				let img = channel.isPrivate() ? /*#__PURE__*/React.createElement("img", {
+					className: channelHeaderClasses.dmIcon,
+					onClick: goToChannel,
+					src: getDMIcon(channel, 80)
+				}) : /*#__PURE__*/React.createElement(GuildIcon, {
+					className: channelHeaderClasses.guildIcon,
+					onClick: goToChannel,
+					guild: guild,
+					active: true,
+					animate: false,
+					size: GuildIcon.Sizes.MEDIUM
+				});
+				return /*#__PURE__*/React.createElement("div", {
+					className: RMChannelClasses.channel
+				}, /*#__PURE__*/React.createElement("div", {
+					className: `${channelHeaderClasses.channelHeader} notification-history-meg-header`
+				}, img, /*#__PURE__*/React.createElement(Heading, {
+					className: channelHeaderClasses.channelName,
+					variant: "heading-md/medium",
+					onClick: goToChannel
+				}, /*#__PURE__*/React.createElement("span", {
+					className: channelHeaderClasses.channelNameSpan
+				}, channelName, guild?.name && ` (${guild?.name})`))), /*#__PURE__*/React.createElement("div", {
+					className: RMMessageClasses.messages
+				}, /*#__PURE__*/React.createElement("div", {
+					className: RMMessageClasses.messageContainer
+				}, /*#__PURE__*/React.createElement(ChannelMessage, {
+					className: `${RMMessageClasses.message} notification-history-message`,
+					animateAvatar: false,
+					message: message,
+					channel: channel,
+					onClick: goToMessage
+				}))));
+			}
+	
+		}
+	
+		class NotificationHistoryDialogElement extends React.Component {
+			constructor(props) {
+				super(props);
+				this.props.notificationStore.addEventListener('notification', this);
+			}
+	
+			handleEvent(e) {
+				if (e.type === 'notification') this.forceUpdate();
+			}
+	
+			componentWillUnmount() {
+				this.props.notificationStore.removeEventListener('notification', this);
+			}
+	
+			render() {
+				return /*#__PURE__*/React.createElement("div", {
+					"aria-label": "Notification History",
+					role: "dialog",
+					tabIndex: "-1",
+					"aria-model": "true"
+				}, /*#__PURE__*/React.createElement("div", {
+					className: RMPopoutClasses.container
+				}, /*#__PURE__*/React.createElement("div", {
+					className: inboxClasses.header,
+					style: {
+						zIndex: '100'
+					}
+				}, /*#__PURE__*/React.createElement(Heading, {
+					variant: "heading-md/medium"
+				}, "Notification History")), /*#__PURE__*/React.createElement(ScrollerThin, {
+					className: RMPopoutClasses.scroller
+				}, this.props.notificationStore.length ? this.props.notificationStore.getAll().map(notification => /*#__PURE__*/React.createElement(NotificationElement, {
+					key: notification.message.id,
+					notification: notification,
+					closeModal: this.props.onClose
+				})) : /*#__PURE__*/React.createElement("div", {
+					className: "notification-history-placeholder"
+				}, "Any notifications you receive will be recorded here."))));
+			}
+	
+		}
+	
+		class NotificationHistoryIconElement extends React.Component {
+			constructor(props) {
+				super(props);
+				this.state = {
+					open: false
+				};
+			}
+	
+			createIcon() {
+				return /*#__PURE__*/React.createElement("svg", {
+					xmlns: "http://www.w3.org/2000/svg",
+					class: iconClasses.icon,
+					viewBox: "0 0 24 24",
+					fill: "currentColor",
+					"stroke-width": "0"
+				}, /*#__PURE__*/React.createElement("path", {
+					d: "M18 9V14C18 15.657 19.344 17 21 17V18H3V17C4.656 17 6 15.657 6 14V9C6 5.686 8.686 3 12 3C15.314 3 18 5.686 18 9ZM11.9999 21C10.5239 21 9.24793 20.19 8.55493 19H15.4449C14.7519 20.19 13.4759 21 11.9999 21Z",
+					mask: "url(#circle)"
+				}), /*#__PURE__*/React.createElement("g", {
+					transform: "translate(12, 12) scale(0.5)",
+					fill: "none",
+					stroke: "currentColor",
+					"stroke-width": "3",
+					"stroke-linecap": "round",
+					"stroke-linejoin": "round"
+				}, /*#__PURE__*/React.createElement("polyline", {
+					points: "12 8 12 12 14 14"
+				}), /*#__PURE__*/React.createElement("path", {
+					d: "M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"
+				})), /*#__PURE__*/React.createElement("mask", {
+					id: "circle"
+				}, /*#__PURE__*/React.createElement("rect", {
+					width: "100%",
+					height: "100%",
+					fill: "white"
+				}), /*#__PURE__*/React.createElement("circle", {
+					cx: "17",
+					cy: "17",
+					r: "6.5",
+					fill: "black"
+				})));
+			}
+	
+			render() {
+				return /*#__PURE__*/React.createElement(Popout, {
+					align: "right",
+					position: "bottom",
+					animation: "1",
+					shouldShow: this.state.open,
+					onRequestClose: () => this.setState({
+						open: false
+					}),
+					ignoreModalClicks: true,
+					autoInvert: false,
+					renderPopout: popoutProps => {
+						popoutProps.notificationStore = this.props.notificationStore;
+						return /*#__PURE__*/React.createElement(NotificationHistoryDialogElement, popoutProps);
+					},
+					children: (_, popoutState) => /*#__PURE__*/React.createElement(IconElement, {
+						icon: this.createIcon.bind(this),
+						onClick: () => this.setState(state => ({
+							open: !state.open
+						})),
+						tooltip: popoutState.isShown ? null : "Notification History",
+						selected: popoutState.isShown
+					})
+				});
+			}
+	
+		}
+	
+		return class NotificationHistory extends Plugin {
+			notificationStore = new NotificationStore();
+			onNotification = notification => this.notificationStore.add(notification);
+	
+			onStart() {
+				Dispatcher.subscribe('RPC_NOTIFICATION_CREATE', this.onNotification);
+				Patcher.before(HeaderBar, 'ZP', (_, [props]) => {
+					if (!props) return;
+					let toolbarChildren = props.toolbar.props.children;
+					if (!toolbarChildren) return;
+					let btnIndex = toolbarChildren.findIndex(x => x?.type?.toString().includes('INBOX'));
+					toolbarChildren.splice(btnIndex, 0, /*#__PURE__*/React.createElement(NotificationHistoryIconElement, {
+						notificationStore: this.notificationStore
+					}));
+				});
+				DOMTools.addStyle('notification-history-styles', `
+					.notification-history-placeholder {
+						margin: 4em 0;
+						color: var(--text-normal);
+						text-align: center;
+					}
+					
+					.notification-history-message:hover {
+						cursor: pointer;
+					}
+					
+					.notification-history-meg-header {
+						position: static;
+						padding-left: 0;
+					}
+				`);
+			}
+	
+			onStop() {
+				Dispatcher.unsubscribe('RPC_NOTIFICATION_CREATE', this.onNotification);
+				Patcher.unpatchAll();
+				DOMTools.removeStyle('notification-history-styles');
+			}
+	
+		};
+	})(...global.ZeresPluginLibrary.buildPlugin(config));
 })();
