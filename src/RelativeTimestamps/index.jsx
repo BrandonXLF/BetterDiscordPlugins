@@ -86,7 +86,7 @@ module.exports = (Plugin, Library) => {
 		}
 
 		render() {
-			return <span ref={this.ref}> - {formatAgo(this.props.start, this.state.end, this.props.shouldHideSeconds?.())}</span>;
+			return <span ref={this.ref}>{formatAgo(this.props.start, this.state.end, this.props.shouldHideSeconds?.())}</span>;
 		}
 	}
 
@@ -107,9 +107,17 @@ module.exports = (Plugin, Library) => {
 			timestamp.props.children.props.children = (...childrenArgs) => {
 				let children = renderChildren(...childrenArgs);
 				
-				if (!Array.isArray(children.props.children)) children.props.children = [children.props.children];
+				let agoElement = <AgoElement start={messageSent} shouldHideSeconds={this.shouldHideSeconds} />;
+				
+				if (this.settings.relativeOnly) {
+					children.props.children = agoElement;
+					return children;
+				}
+				
+				if (!Array.isArray(children.props.children))
+					children.props.children = [children.props.children];
 
-				children.props.children.push(<AgoElement start={messageSent} shouldHideSeconds={this.shouldHideSeconds} />);
+				children.props.children.push(' - ', agoElement);
 
 				return children;
 			};
@@ -121,11 +129,11 @@ module.exports = (Plugin, Library) => {
 
 				let messageSent = Math.min(props.timestamp.valueOf(), this.getEarliestKnownExistence(props.id));
 				
-				if (!props.compact && !isEditTimestamp && this.settings.showInTimestamp) this.addToTimestamp(messageSent, val);
+				if (!props.compact && !isEditTimestamp && this.settings.showInTimestamp)
+					this.addToTimestamp(messageSent, val);
 				
 				val.props.children.props.text = <div>
-					{val.props.children.props.text}
-					<AgoElement start={messageSent} />
+					{val.props.children.props.text} - <AgoElement start={messageSent} />
 				</div>;
 			});
 		}

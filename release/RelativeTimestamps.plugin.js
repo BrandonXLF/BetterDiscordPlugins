@@ -1,6 +1,6 @@
 /**
  * @name RelativeTimestamps
- * @version 1.2.0
+ * @version 1.3.0
  * @author BrandonXLF
  * @description Add relative timestamps to messages.
  * @website https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/RelativeTimestamps
@@ -8,7 +8,7 @@
  * @authorLink https://github.com/BrandonXLF/
  */
 module.exports = (() => {
-	const config = {"info":{"version":"1.2.0","description":"Add relative timestamps to messages.","name":"RelativeTimestamps","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/RelativeTimestamps","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/RelativeTimestamps.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"defaultConfig":[{"type":"switch","id":"showInTimestamp","name":"Show relative timestamp in the message timestamp in addition to the tooltip.","value":true},{"type":"switch","id":"hideSeconds","name":"Do not display seconds for the relative timestamp in the message timestamp.","value":false}],"main":"index.js"};
+	const config = {"info":{"version":"1.3.0","description":"Add relative timestamps to messages.","name":"RelativeTimestamps","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/RelativeTimestamps","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/RelativeTimestamps.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"defaultConfig":[{"type":"switch","id":"showInTimestamp","name":"Show relative timestamp in the message timestamp in addition to the tooltip.","value":true},{"type":"switch","id":"relativeOnly","name":"Only show relative time in the message timestamp.","value":false},{"type":"switch","id":"hideSeconds","name":"Do not display seconds for the relative timestamp in the message timestamp.","value":false}],"main":"index.js"};
 
 	return !global.ZeresPluginLibrary ? class {
 		constructor() {
@@ -123,7 +123,7 @@ module.exports = (() => {
 			render() {
 				return /*#__PURE__*/React.createElement("span", {
 					ref: this.ref
-				}, " - ", formatAgo(this.props.start, this.state.end, this.props.shouldHideSeconds?.()));
+				}, formatAgo(this.props.start, this.state.end, this.props.shouldHideSeconds?.()));
 			}
 	
 		}
@@ -143,11 +143,18 @@ module.exports = (() => {
 	
 				timestamp.props.children.props.children = (...childrenArgs) => {
 					let children = renderChildren(...childrenArgs);
-					if (!Array.isArray(children.props.children)) children.props.children = [children.props.children];
-					children.props.children.push( /*#__PURE__*/React.createElement(AgoElement, {
+					let agoElement = /*#__PURE__*/React.createElement(AgoElement, {
 						start: messageSent,
 						shouldHideSeconds: this.shouldHideSeconds
-					}));
+					});
+	
+					if (this.settings.relativeOnly) {
+						children.props.children = agoElement;
+						return children;
+					}
+	
+					if (!Array.isArray(children.props.children)) children.props.children = [children.props.children];
+					children.props.children.push(' - ', agoElement);
 					return children;
 				};
 			}
@@ -157,7 +164,7 @@ module.exports = (() => {
 					let isEditTimestamp = props.children?.props.className === messageClasses.edited;
 					let messageSent = Math.min(props.timestamp.valueOf(), this.getEarliestKnownExistence(props.id));
 					if (!props.compact && !isEditTimestamp && this.settings.showInTimestamp) this.addToTimestamp(messageSent, val);
-					val.props.children.props.text = /*#__PURE__*/React.createElement("div", null, val.props.children.props.text, /*#__PURE__*/React.createElement(AgoElement, {
+					val.props.children.props.text = /*#__PURE__*/React.createElement("div", null, val.props.children.props.text, " - ", /*#__PURE__*/React.createElement(AgoElement, {
 						start: messageSent
 					}));
 				});

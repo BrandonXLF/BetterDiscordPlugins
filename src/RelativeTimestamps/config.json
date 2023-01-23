@@ -1,6 +1,6 @@
 {
 	"info": {
-		"version": "1.2.0",
+		"version": "1.3.0",
 		"description": "Add relative timestamps to messages."
 	},
 	"defaultConfig": [
@@ -9,6 +9,12 @@
 			"id": "showInTimestamp",
 			"name": "Show relative timestamp in the message timestamp in addition to the tooltip.",
 			"value": true
+		},
+		{
+			"type": "switch",
+			"id": "relativeOnly",
+			"name": "Only show relative time in the message timestamp.",
+			"value": false
 		},
 		{
 			"type": "switch",
