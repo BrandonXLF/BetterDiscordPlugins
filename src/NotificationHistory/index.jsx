@@ -14,11 +14,16 @@ module.exports = (Plugin, Library) => {
 			defaultExport: false
 		}
 	);
-	const ScrollerThin = WebpackModules.find(m => {
-		let str = m?.render?.toString?.();
-		
-		return str?.includes('scrollerRef') && str?.includes('paddingFix')
-	});
+	const ScrollerThin = WebpackModules.find(
+		m => {
+			let str = m?.render?.toString?.();
+			
+			return str?.includes('scrollerRef') && str?.includes('paddingFix')
+		},
+		{
+			searchExports: true
+		}
+	);
 	const IconElement = WebpackModules.find(
 		m => m?.toString?.().includes('iconWrapper') && m?.toString?.().includes('hideOnClick'),
 		{
@@ -32,7 +37,12 @@ module.exports = (Plugin, Library) => {
 			searchExports: true
 		}
 	);
-	const Popout = WebpackModules.find(m => m?.toString?.().includes('handlePopoutPositionChange'));
+	const Popout = WebpackModules.find(
+		m => m?.toString?.().includes('handlePopoutPositionChange'),
+		{
+			searchExports: true
+		}
+	);
 	const Heading = WebpackModules.find(
 		m => m?.toString?.().includes('data-excessive-heading-level'),
 		{

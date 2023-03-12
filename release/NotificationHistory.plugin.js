@@ -1,6 +1,6 @@
 /**
  * @name NotificationHistory
- * @version 2.1.0
+ * @version 2.1.1
  * @author BrandonXLF
  * @description View a list of all the notifications you've received since Discord was opened.
  * @website https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory
@@ -8,7 +8,7 @@
  * @authorLink https://github.com/BrandonXLF/
  */
 module.exports = (() => {
-	const config = {"info":{"version":"2.1.0","description":"View a list of all the notifications you've received since Discord was opened.","name":"NotificationHistory","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/NotificationHistory.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"main":"index.js"};
+	const config = {"info":{"version":"2.1.1","description":"View a list of all the notifications you've received since Discord was opened.","name":"NotificationHistory","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/NotificationHistory.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"main":"index.js"};
 
 	return !global.ZeresPluginLibrary ? class {
 		constructor() {
@@ -62,6 +62,8 @@ module.exports = (() => {
 		const ScrollerThin = WebpackModules.find(m => {
 			let str = m?.render?.toString?.();
 			return str?.includes('scrollerRef') && str?.includes('paddingFix');
+		}, {
+			searchExports: true
 		});
 		const IconElement = WebpackModules.find(m => m?.toString?.().includes('iconWrapper') && m?.toString?.().includes('hideOnClick'), {
 			defaultExport: false,
@@ -70,7 +72,9 @@ module.exports = (() => {
 		const transitionToGuild = WebpackModules.find(m => m?.toString?.().includes('transitionToGuild - '), {
 			searchExports: true
 		});
-		const Popout = WebpackModules.find(m => m?.toString?.().includes('handlePopoutPositionChange'));
+		const Popout = WebpackModules.find(m => m?.toString?.().includes('handlePopoutPositionChange'), {
+			searchExports: true
+		});
 		const Heading = WebpackModules.find(m => m?.toString?.().includes('data-excessive-heading-level'), {
 			searchExports: true
 		});
