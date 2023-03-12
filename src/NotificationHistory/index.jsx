@@ -185,7 +185,7 @@ module.exports = (Plugin, Library) => {
 				aria-model="true"
 			>
 				<div className={RMPopoutClasses.container}>
-					<div className={inboxClasses.header} style={{zIndex: '100'}}>
+					<div className={`${inboxClasses.header} ${inboxClasses.title}`} style={{zIndex: '100'}}>
 						<Heading variant="heading-md/medium">
 							Notification History
 						</Heading>
