@@ -1,6 +1,6 @@
 /**
  * @name NotificationHistory
- * @version 2.1.2
+ * @version 2.1.3
  * @author BrandonXLF
  * @description View a list of all the notifications you've received since Discord was opened.
  * @website https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory
@@ -8,7 +8,7 @@
  * @authorLink https://github.com/BrandonXLF/
  */
 module.exports = (() => {
-	const config = {"info":{"version":"2.1.2","description":"View a list of all the notifications you've received since Discord was opened.","name":"NotificationHistory","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/NotificationHistory.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"main":"index.js"};
+	const config = {"info":{"version":"2.1.3","description":"View a list of all the notifications you've received since Discord was opened.","name":"NotificationHistory","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/NotificationHistory.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"main":"index.js"};
 
 	return !global.ZeresPluginLibrary ? class {
 		constructor() {
@@ -75,7 +75,7 @@ module.exports = (() => {
 		const Popout = WebpackModules.find(m => m?.toString?.().includes('handlePopoutPositionChange'), {
 			searchExports: true
 		});
-		const Heading = WebpackModules.find(m => m?.toString?.().includes('data-excessive-heading-level'), {
+		const Heading = WebpackModules.find(m => m?.toString?.().includes('data-excessive-heading-level') && m.toString().includes('className'), {
 			searchExports: true
 		});
 		const getChannelName = WebpackModules.find(m => m?.toString?.().includes('.recipients.map') && m?.toString?.().includes('#'), {
@@ -196,14 +196,10 @@ module.exports = (() => {
 					"aria-model": "true"
 				}, /*#__PURE__*/React.createElement("div", {
 					className: RMPopoutClasses.container
-				}, /*#__PURE__*/React.createElement("div", {
-					className: `${inboxClasses.header} ${inboxClasses.title}`,
-					style: {
-						zIndex: '100'
-					}
 				}, /*#__PURE__*/React.createElement(Heading, {
+					className: inboxClasses.header,
 					variant: "heading-md/medium"
-				}, "Notification History")), /*#__PURE__*/React.createElement(ScrollerThin, {
+				}, "Notification History"), /*#__PURE__*/React.createElement(ScrollerThin, {
 					className: RMPopoutClasses.scroller
 				}, this.props.notificationStore.length ? this.props.notificationStore.getAll().map(notification => /*#__PURE__*/React.createElement(NotificationElement, {
 					key: notification.message.id,

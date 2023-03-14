@@ -44,7 +44,7 @@ module.exports = (Plugin, Library) => {
 		}
 	);
 	const Heading = WebpackModules.find(
-		m => m?.toString?.().includes('data-excessive-heading-level'),
+		m => m?.toString?.().includes('data-excessive-heading-level') && m.toString().includes('className'),
 		{
 			searchExports: true
 		}
@@ -185,11 +185,9 @@ module.exports = (Plugin, Library) => {
 				aria-model="true"
 			>
 				<div className={RMPopoutClasses.container}>
-					<div className={`${inboxClasses.header} ${inboxClasses.title}`} style={{zIndex: '100'}}>
-						<Heading variant="heading-md/medium">
-							Notification History
-						</Heading>
-					</div>
+					<Heading className={inboxClasses.header} variant="heading-md/medium">
+						Notification History
+					</Heading>
 					<ScrollerThin className={RMPopoutClasses.scroller}>
 						{this.props.notificationStore.length
 							? this.props.notificationStore.getAll().map(notification => 
