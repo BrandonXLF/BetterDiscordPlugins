@@ -20,7 +20,10 @@ module.exports = (() => {
 							
 							const text = await res.text();
 							const filePath = require('path').join(BdApi.Plugins.folder, '0PluginLibrary.plugin.js');
-							await require('fs/promises').writeFile(filePath, text);
+
+							await new Promise(resolve => {
+								require('fs').writeFile(filePath, text, resolve);
+							});
 						} catch (e) {
 							BdApi.alert('Error', 'Could not download library plugin. Try again later or download it manually from https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
 						}
