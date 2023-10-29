@@ -1,68 +1,50 @@
 module.exports = (Plugin, Library) => {
 	const { Patcher, DiscordModules, WebpackModules, DOMTools } = Library;
 	const { React, UserStore, RelationshipStore } = DiscordModules;
-	const createMessage = WebpackModules.find(
-		m => m?.toString?.().includes('mention_everyone') && m?.toString?.().includes('return new'),
-		{
-			searchExports: true
-		}
-	);
+	const createMessageRecord = WebpackModules.getByProps('createMessageRecord').createMessageRecord;
 	const Dispatcher = WebpackModules.getByProps('subscribe', '_subscriptions');
 	const HeaderBar = WebpackModules.find(
 		m => m?.toString?.().includes('.toolbar'),
-		{
-			defaultExport: false
-		}
+		{ defaultExport: false }
 	);
 	const ScrollerThin = WebpackModules.find(
 		m => {
 			let str = m?.render?.toString?.();
-			
 			return str?.includes('scrollerRef') && str?.includes('paddingFix')
 		},
-		{
-			searchExports: true
-		}
+		{ searchExports: true }
 	);
 	const IconElement = WebpackModules.find(
 		m => m?.toString?.().includes('iconWrapper') && m?.toString?.().includes('hideOnClick'),
-		{
-			defaultExport: false,
-			searchExports: true
-		}
+		{ searchExports: true }
 	);
 	const transitionToGuild = WebpackModules.find(
 		m => m?.toString?.().includes('transitionToGuild - '),
-		{
-			searchExports: true
-		}
+		{ searchExports: true }
 	);
 	const Popout = WebpackModules.find(
 		m => m?.toString?.().includes('handlePopoutPositionChange'),
-		{
-			searchExports: true
-		}
+		{ searchExports: true }
 	);
 	const Heading = WebpackModules.find(
 		m => m?.toString?.().includes('data-excessive-heading-level') && m.toString().includes('className'),
-		{
-			searchExports: true
-		}
+		{ searchExports: true }
 	);
 	const getChannelName = WebpackModules.find(
 		m => m?.toString?.().includes('.recipients.map') && m?.toString?.().includes('#'),
-		{
-			searchExports: true
-		}
+		{ searchExports: true }
 	);
 	const getDMIcon = WebpackModules.find(
 		m => m?.toString?.().includes('getChannelIconURL'),
-		{
-			searchExports: true,
-		}
+		{ searchExports: true }
 	);
 	const GuildIcon = WebpackModules.find(m => m.defaultProps?.showBadge !== undefined);
-	const ChannelMessage = WebpackModules.find(m => m?.type?.toString?.().includes('messageReference'));
+	const ChannelMessage = WebpackModules.find(
+		m => {
+			let str = m?.type?.toString?.();
+			return str?.includes('messageReference') && str?.includes('isClyde')
+		}
+	);
 	const ChannelStore = WebpackModules.getByProps('getChannel', 'getDMFromUserId');
 	const GuildStore = WebpackModules.getByProps('getGuild', 'getGuildCount');
 	const iconClasses = WebpackModules.getByProps('container', 'children', 'toolbar', 'iconWrapper');
@@ -92,12 +74,8 @@ module.exports = (Plugin, Library) => {
 	}
 	
 	class NotificationElement extends React.Component {
-		constructor(props) {
-			super(props);
-		}
-		
 		render() {
-			let message = createMessage(this.props.notification.message);
+			let message = createMessageRecord(this.props.notification.message);
 			let channel = ChannelStore.getChannel(this.props.notification.channelId);
 			
 			if (!message || !channel) return null;
@@ -152,7 +130,6 @@ module.exports = (Plugin, Library) => {
 					<div className={RMMessageClasses.messageContainer}>
 						<ChannelMessage
 							className={`${RMMessageClasses.message} notification-history-message`}
-							animateAvatar={false}
 							message={message}
 							channel={channel}
 							onClick={goToMessage}
@@ -253,7 +230,7 @@ module.exports = (Plugin, Library) => {
 		onStart() {
 			Dispatcher.subscribe('RPC_NOTIFICATION_CREATE', this.onNotification);
 
-			Patcher.before(HeaderBar, 'ZP', (_, [props]) => {
+			Patcher.before(HeaderBar, 'default', (_, [props]) => {
 				if (!props) return;
 				
 				let toolbarChildren = props.toolbar.props.children;

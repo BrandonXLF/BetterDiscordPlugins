@@ -3,9 +3,7 @@ module.exports = (Plugin, Library) => {
 	const { React } = DiscordModules;
 	const MessageTimestamp = WebpackModules.find(
 		m => m?.toString?.().includes('MESSAGE_EDITED_TIMESTAMP_A11Y_LABEL'),
-		{
-			defaultExport: false
-		}
+		{ defaultExport: false }
 	);
 	const moment = WebpackModules.getByProps('duration', 'now');
 	const messageClasses = WebpackModules.getByProps('messageContent', 'timestampInline');
@@ -124,7 +122,7 @@ module.exports = (Plugin, Library) => {
 		}
 		
 		onStart() {
-			Patcher.after(MessageTimestamp, 'Z', (_, [props], val) => {
+			Patcher.after(MessageTimestamp, 'default', (_, [props], val) => {
 				let isEditTimestamp = props.children?.props.className === messageClasses.edited;
 
 				let messageSent = Math.min(props.timestamp.valueOf(), this.getEarliestKnownExistence(props.id));

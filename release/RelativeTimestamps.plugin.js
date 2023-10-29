@@ -163,7 +163,7 @@ module.exports = (() => {
 			}
 	
 			onStart() {
-				Patcher.after(MessageTimestamp, 'Z', (_, [props], val) => {
+				Patcher.after(MessageTimestamp, 'default', (_, [props], val) => {
 					let isEditTimestamp = props.children?.props.className === messageClasses.edited;
 					let messageSent = Math.min(props.timestamp.valueOf(), this.getEarliestKnownExistence(props.id));
 					if (!props.compact && !isEditTimestamp && this.settings.showInTimestamp) this.addToTimestamp(messageSent, val);
