@@ -1,6 +1,6 @@
 /**
  * @name NotificationHistory
- * @version 2.1.3
+ * @version 2.1.4
  * @author BrandonXLF
  * @description View a list of all the notifications you've received since Discord was opened.
  * @website https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory
@@ -8,7 +8,7 @@
  * @authorLink https://github.com/BrandonXLF/
  */
 module.exports = (() => {
-	const config = {"info":{"version":"2.1.3","description":"View a list of all the notifications you've received since Discord was opened.","name":"NotificationHistory","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/NotificationHistory.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"main":"index.js"};
+	const config = {"info":{"version":"2.1.4","description":"View a list of all the notifications you've received since Discord was opened.","name":"NotificationHistory","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/NotificationHistory.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"main":"index.js"};
 
 	return !global.ZeresPluginLibrary ? class {
 		constructor() {

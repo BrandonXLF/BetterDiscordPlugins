@@ -1,6 +1,6 @@
 /**
  * @name RelativeTimestamps
- * @version 1.3.0
+ * @version 1.3.1
  * @author BrandonXLF
  * @description Add relative timestamps to messages.
  * @website https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/RelativeTimestamps
@@ -8,7 +8,7 @@
  * @authorLink https://github.com/BrandonXLF/
  */
 module.exports = (() => {
-	const config = {"info":{"version":"1.3.0","description":"Add relative timestamps to messages.","name":"RelativeTimestamps","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/RelativeTimestamps","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/RelativeTimestamps.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"defaultConfig":[{"type":"switch","id":"showInTimestamp","name":"Show relative timestamp in the message timestamp in addition to the tooltip.","value":true},{"type":"switch","id":"relativeOnly","name":"Only show relative time in the message timestamp.","value":false},{"type":"switch","id":"hideSeconds","name":"Do not display seconds for the relative timestamp in the message timestamp.","value":false}],"main":"index.js"};
+	const config = {"info":{"version":"1.3.1","description":"Add relative timestamps to messages.","name":"RelativeTimestamps","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/RelativeTimestamps","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/RelativeTimestamps.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"defaultConfig":[{"type":"switch","id":"showInTimestamp","name":"Show relative timestamp in the message timestamp in addition to the tooltip.","value":true},{"type":"switch","id":"relativeOnly","name":"Only show relative time in the message timestamp.","value":false},{"type":"switch","id":"hideSeconds","name":"Do not display seconds for the relative timestamp in the message timestamp.","value":false}],"main":"index.js"};
 
 	return !global.ZeresPluginLibrary ? class {
 		constructor() {
