@@ -42,7 +42,7 @@ module.exports = (Plugin, Library) => {
 	const ChannelMessage = WebpackModules.find(
 		m => {
 			let str = m?.type?.toString?.();
-			return str?.includes('messageReference') && str?.includes('isClyde')
+			return str?.includes('messageReference') && str?.includes('canSuppressEmbeds')
 		}
 	);
 	const ChannelStore = WebpackModules.getByProps('getChannel', 'getDMFromUserId');

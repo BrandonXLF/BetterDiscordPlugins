@@ -1,6 +1,6 @@
 /**
  * @name NotificationHistory
- * @version 2.1.4
+ * @version 2.1.5
  * @author BrandonXLF
  * @description View a list of all the notifications you've received since Discord was opened.
  * @website https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory
@@ -8,7 +8,7 @@
  * @authorLink https://github.com/BrandonXLF/
  */
 module.exports = (() => {
-	const config = {"info":{"version":"2.1.4","description":"View a list of all the notifications you've received since Discord was opened.","name":"NotificationHistory","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/NotificationHistory.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"main":"index.js"};
+	const config = {"info":{"version":"2.1.5","description":"View a list of all the notifications you've received since Discord was opened.","name":"NotificationHistory","github":"https://github.com/BrandonXLF/BetterDiscordPlugins/tree/main/src/NotificationHistory","github_raw":"https://raw.githubusercontent.com/BrandonXLF/BetterDiscordPlugins/main/release/NotificationHistory.plugin.js","authors":[{"name":"BrandonXLF","link":"https://github.com/BrandonXLF/"}]},"main":"index.js"};
 
 	return !global.ZeresPluginLibrary ? class {
 		constructor() {
@@ -87,7 +87,7 @@ module.exports = (() => {
 		const GuildIcon = WebpackModules.find(m => m.defaultProps?.showBadge !== undefined);
 		const ChannelMessage = WebpackModules.find(m => {
 			let str = m?.type?.toString?.();
-			return str?.includes('messageReference') && str?.includes('isClyde');
+			return str?.includes('messageReference') && str?.includes('canSuppressEmbeds');
 		});
 		const ChannelStore = WebpackModules.getByProps('getChannel', 'getDMFromUserId');
 		const GuildStore = WebpackModules.getByProps('getGuild', 'getGuildCount');
@@ -97,34 +97,26 @@ module.exports = (() => {
 		const RMMessageClasses = WebpackModules.getByProps('messages', 'message', 'messageContainer');
 		const RMChannelClasses = WebpackModules.getByProps('collapseButton', 'channel');
 		const channelHeaderClasses = WebpackModules.getByProps('guildIcon', 'dmIcon');
-	
 		class NotificationStore extends EventTarget {
 			#notifications = [];
-	
 			add(notification) {
 				if (this.#notifications.includes(notification)) return;
 				this.#notifications.unshift(notification);
 				this.dispatchEvent(new CustomEvent('notification'));
 			}
-	
 			getAll() {
 				return this.#notifications;
 			}
-	
 			get length() {
 				return this.#notifications.length;
 			}
-	
 		}
-	
 		class NotificationElement extends React.Component {
 			render() {
 				let message = createMessageRecord(this.props.notification.message);
 				let channel = ChannelStore.getChannel(this.props.notification.channelId);
 				if (!message || !channel) return null;
-	
 				let goToMessage = () => transitionToGuild(channel.getGuildId(), channel.id, message.id);
-	
 				let guild = GuildStore.getGuild(channel.getGuildId());
 				let channelName = getChannelName(channel, UserStore, RelationshipStore, true);
 				let img = channel.isPrivate() ? /*#__PURE__*/React.createElement("img", {
@@ -169,23 +161,18 @@ module.exports = (() => {
 					onClick: goToMessage
 				}))));
 			}
-	
 		}
-	
 		class NotificationHistoryDialogElement extends React.Component {
 			constructor(props) {
 				super(props);
 				this.props.notificationStore.addEventListener('notification', this);
 			}
-	
 			handleEvent(e) {
 				if (e.type === 'notification') this.forceUpdate();
 			}
-	
 			componentWillUnmount() {
 				this.props.notificationStore.removeEventListener('notification', this);
 			}
-	
 			render() {
 				return /*#__PURE__*/React.createElement("div", {
 					"aria-label": "Notification History",
@@ -207,9 +194,7 @@ module.exports = (() => {
 					className: "notification-history-placeholder"
 				}, "Any notifications you receive will be recorded here."))));
 			}
-	
 		}
-	
 		class NotificationHistoryIconElement extends React.Component {
 			constructor(props) {
 				super(props);
@@ -217,7 +202,6 @@ module.exports = (() => {
 					open: false
 				};
 			}
-	
 			createIcon() {
 				return /*#__PURE__*/React.createElement("svg", {
 					xmlns: "http://www.w3.org/2000/svg",
@@ -252,7 +236,6 @@ module.exports = (() => {
 					fill: "black"
 				})));
 			}
-	
 			render() {
 				return /*#__PURE__*/React.createElement(Popout, {
 					align: "right",
@@ -278,13 +261,10 @@ module.exports = (() => {
 					})
 				});
 			}
-	
 		}
-	
 		return class NotificationHistory extends Plugin {
 			notificationStore = new NotificationStore();
 			onNotification = notification => this.notificationStore.add(notification);
-	
 			onStart() {
 				Dispatcher.subscribe('RPC_NOTIFICATION_CREATE', this.onNotification);
 				Patcher.before(HeaderBar, 'default', (_, [props]) => {
@@ -313,13 +293,11 @@ module.exports = (() => {
 					}
 				`);
 			}
-	
 			onStop() {
 				Dispatcher.unsubscribe('RPC_NOTIFICATION_CREATE', this.onNotification);
 				Patcher.unpatchAll();
 				DOMTools.removeStyle('notification-history-styles');
 			}
-	
 		};
 	})(...global.ZeresPluginLibrary.buildPlugin(config));
 })();
